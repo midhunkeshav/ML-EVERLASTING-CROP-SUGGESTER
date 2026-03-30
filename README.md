@@ -1,5 +1,5 @@
 # ML-EVERLASTING-CROP-SUGGESTER
-# **🌾 AIRTIFICIAL INTELLIGENCE AND MACHINE LEARNING CROP SUGESSTOR **
+# **🌾 AIRTIFICIAL INTELLIGENCE AND MACHINE LEARNING CROP SUGESSTER **
 
 A machine learning project that recommends the most suitable crop to grow based on soil and climate conditions — built as part of the **Fundamentals of AI and ML** course capstone (BYOP).
 
