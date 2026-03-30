@@ -1,146 +1,114 @@
 
+# ============================================================
+#  MY ML CROP SUGESSTOR BY MIDHUN KESHAV JT 25BCE10589
+#  A simple ML project to help farmers choose the right crop
+# ============================================================
+
+# Step 1: Import the tools we need
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.preprocessing import LabelEncoder
-import warnings
-warnings.filterwarnings("ignore")
- 
-# ------------------------------------------------------------------
-# 1. CREATE SAMPLE DATASET
-#    (Based on the publicly available Crop Recommendation Dataset)
-#    Features: N, P, K (soil nutrients), temperature, humidity,
-#              pH, rainfall
-#    Label   : crop name
-# ------------------------------------------------------------------
- 
-np.random.seed(42)
- 
-def generate_crop_data():
-    """Generate a representative crop-recommendation dataset."""
-    crops = {
-        "rice":      dict(N=(60,100), P=(40,70),  K=(30,60),  temp=(20,30), hum=(70,90), ph=(5.5,7.0), rain=(150,250)),
-        "wheat":     dict(N=(80,120), P=(30,60),  K=(30,60),  temp=(15,25), hum=(50,70), ph=(6.0,7.5), rain=(50,100)),
-        "maize":     dict(N=(70,110), P=(50,80),  K=(40,70),  temp=(18,28), hum=(55,75), ph=(5.8,7.2), rain=(60,120)),
-        "cotton":    dict(N=(100,140),P=(40,70),  K=(50,80),  temp=(25,35), hum=(50,70), ph=(6.0,8.0), rain=(50,100)),
-        "sugarcane": dict(N=(100,150),P=(30,60),  K=(40,80),  temp=(22,32), hum=(65,85), ph=(6.0,7.5), rain=(100,200)),
-        "mungbean":  dict(N=(20,50),  P=(40,70),  K=(30,60),  temp=(25,35), hum=(60,80), ph=(6.0,7.5), rain=(60,100)),
-        "lentil":    dict(N=(15,40),  P=(50,80),  K=(20,50),  temp=(15,25), hum=(45,65), ph=(6.0,7.5), rain=(35,60)),
-        "pomegranate":dict(N=(15,40), P=(20,50),  K=(30,60),  temp=(20,35), hum=(40,60), ph=(5.5,7.5), rain=(40,80)),
-        "mango":     dict(N=(20,50),  P=(20,50),  K=(20,50),  temp=(24,38), hum=(45,65), ph=(5.5,7.5), rain=(60,120)),
-        "banana":    dict(N=(80,120), P=(60,90),  K=(50,100), temp=(20,30), hum=(70,90), ph=(5.5,7.0), rain=(100,200)),
-    }
- 
-    rows = []
-    for crop, params in crops.items():
-        for _ in range(110):   # 110 samples per crop → 1100 total
-            row = {
-                "N":           np.random.uniform(*params["N"]),
-                "P":           np.random.uniform(*params["P"]),
-                "K":           np.random.uniform(*params["K"]),
-                "temperature": np.random.uniform(*params["temp"]),
-                "humidity":    np.random.uniform(*params["hum"]),
-                "ph":          np.random.uniform(*params["ph"]),
-                "rainfall":    np.random.uniform(*params["rain"]),
-                "label":       crop,
-            }
-            rows.append(row)
- 
-    df = pd.DataFrame(rows).sample(frac=1, random_state=42).reset_index(drop=True)
-    return df
- 
-# ------------------------------------------------------------------
-# 2. LOAD & EXPLORE DATA
-# ------------------------------------------------------------------
-print("=" * 60)
-print("  CROP RECOMMENDATION SYSTEM — ML PROJECT")
-print("=" * 60)
- 
-df = generate_crop_data()
-df.to_csv("crop_data.csv", index=False)
- 
-print(f"\n[1] Dataset Overview")
-print(f"    Rows    : {len(df)}")
-print(f"    Columns : {list(df.columns)}")
-print(f"    Crops   : {df['label'].nunique()} unique")
-print(f"\n    Sample rows:")
-print(df.head(3).to_string(index=False))
- 
-print(f"\n[2] Class Distribution")
-print(df["label"].value_counts().to_string())
- 
-# ------------------------------------------------------------------
-# 3. PREPROCESSING
-# ------------------------------------------------------------------
-print(f"\n[3] Preprocessing")
- 
-X = df.drop("label", axis=1)
-y = df["label"]
- 
-le = LabelEncoder()
-y_enc = le.fit_transform(y)
- 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y_enc, test_size=0.2, random_state=42, stratify=y_enc
-)
- 
-print(f"    Train size : {len(X_train)}")
-print(f"    Test size  : {len(X_test)}")
- 
-# ------------------------------------------------------------------
-# 4. MODEL TRAINING — Random Forest
-# ------------------------------------------------------------------
-print(f"\n[4] Training Random Forest Classifier ...")
- 
+from sklearn.metrics import accuracy_score
+
+
+# Step 2: Create our dataset
+# (This represents soil and weather conditions for different crops)
+
+
+print("Loading crop data...")
+
+data = {
+    "N":           [90, 85, 60, 74, 78, 100, 120, 110, 25, 30, 20, 15, 80, 95, 105],
+    "P":           [42, 58, 55, 35, 48,  55,  60,  65, 50, 45, 35, 60, 70, 80,  75],
+    "K":           [43, 41, 44, 40, 42,  55,  65,  70, 35, 30, 25, 25, 55, 60,  65],
+    "temperature": [21, 23, 22, 20, 25,  28,  30,  27, 18, 20, 22, 17, 25, 28,  30],
+    "humidity":    [82, 80, 78, 85, 75,  62,  65,  60, 50, 55, 58, 45, 70, 72,  68],
+    "ph":          [6.5,6.3,6.8,6.2,6.6, 7.0, 7.2, 6.9,6.8,7.0,7.1,6.9,6.5,6.8,7.0],
+    "rainfall":    [202,210,190,220,195,  80,  90,  75, 45, 50, 55, 40,120,130, 110],
+    "crop":        [
+        "Rice","Rice","Rice","Rice","Rice",
+        "Cotton","Cotton","Cotton",
+        "Lentil","Lentil","Lentil",
+        "Wheat","Wheat","Wheat","Wheat"
+    ]
+}
+
+# Put it into a table (DataFrame)
+df = pd.DataFrame(data)
+
+print(f"Dataset has {len(df)} rows and these crops: {df['crop'].unique()}")
+print()
+
+
+# Step 3: Prepare the data for training
+
+
+print("Preparing data...")
+
+# X = inputs (what we give the model)
+# y = output (what we want it to predict)
+X = df[["N", "P", "K", "temperature", "humidity", "ph", "rainfall"]]
+y = df["crop"]
+
+# Split data: 80% for training, 20% for testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+print(f"Training samples : {len(X_train)}")
+print(f"Testing samples  : {len(X_test)}")
+print()
+
+
+# Step 4: Train the model
+
+
+print("Training the model... (this takes just a second)")
+
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
- 
-# ------------------------------------------------------------------
-# 5. EVALUATION
-# ------------------------------------------------------------------
-print(f"\n[5] Model Evaluation")
- 
-y_pred = model.predict(X_test)
-acc = accuracy_score(y_test, y_pred)
- 
-print(f"    Accuracy  : {acc * 100:.2f}%")
-print(f"\n    Classification Report:")
-print(classification_report(y_test, y_pred, target_names=le.classes_))
- 
-# ------------------------------------------------------------------
-# 6. FEATURE IMPORTANCE
-# ------------------------------------------------------------------
-print(f"[6] Feature Importance")
-feat_imp = pd.Series(model.feature_importances_, index=X.columns)
-feat_imp_sorted = feat_imp.sort_values(ascending=False)
-for feat, imp in feat_imp_sorted.items():
-    bar = "█" * int(imp * 100)
-    print(f"    {feat:<12} {bar} ({imp:.4f})")
- 
-# ------------------------------------------------------------------
-# 7. PREDICTION DEMO — try your own values
-# ------------------------------------------------------------------
-print(f"\n[7] Prediction Demo")
- 
-sample_inputs = [
-    {"N": 90, "P": 42, "K": 43, "temperature": 21, "humidity": 82, "ph": 6.5, "rainfall": 202},  # → rice
-    {"N": 100,"P": 55, "K": 60, "temperature": 28, "humidity": 62, "ph": 7.0, "rainfall": 80},   # → cotton
-    {"N": 25, "P": 60, "K": 38, "temperature": 20, "humidity": 55, "ph": 6.8, "rainfall": 45},   # → lentil
-]
- 
-print(f"\n    {'N':>4} {'P':>4} {'K':>4}  {'Temp':>6}  {'Hum':>5}  {'pH':>5}  {'Rain':>6}  →  Predicted Crop")
-print("    " + "-" * 65)
-for s in sample_inputs:
-    inp = pd.DataFrame([s])
-    pred_idx = model.predict(inp)[0]
-    crop_name = le.inverse_transform([pred_idx])[0]
-    print(f"    {s['N']:>4.0f} {s['P']:>4.0f} {s['K']:>4.0f}  "
-          f"{s['temperature']:>6.1f}  {s['humidity']:>5.1f}  "
-          f"{s['ph']:>5.1f}  {s['rainfall']:>6.1f}  →  {crop_name.upper()}")
- 
-print(f"\n{'=' * 60}")
-print(f"  Project complete! Model accuracy: {acc * 100:.2f}%")
-print(f"{'=' * 60}\n")
+
+print("Model trained!")
+print()
+
+
+# Step 5: Test how accurate the model is
+
+
+predictions = model.predict(X_test)
+accuracy = accuracy_score(y_test, predictions)
+
+print(f"Model Accuracy: {accuracy * 100:.1f}%")
+print()
+
+
+# Step 6: Trying my own
+
+
+print("=" * 45)
+print("  Let's predict a crop for a new field!")
+print("=" * 45)
+
+# Imagine a farmer gives us these soil readings:
+my_field = pd.DataFrame([{
+    "N": 90,
+    "P": 42,
+    "K": 43,
+    "temperature": 21,
+    "humidity": 82,
+    "ph": 6.5,
+    "rainfall": 202
+}])
+
+result = model.predict(my_field)[0]
+
+print(f"Soil Nitrogen    : 90 mg/kg")
+print(f"Soil Phosphorus  : 42 mg/kg")
+print(f"Soil Potassium   : 43 mg/kg")
+print(f"Temperature      : 21 C")
+print(f"Humidity         : 82 %")
+print(f"Soil pH          : 6.5")
+print(f"Rainfall         : 202 mm")
+print()
+print(f"  Recommended Crop --> {result.upper()}")
+print("=" * 45)
 
