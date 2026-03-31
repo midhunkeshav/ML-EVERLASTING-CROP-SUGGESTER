@@ -131,6 +131,17 @@ It applies the following course concepts:
 ## 👤 Author
 
 **[MIDHUN KESHAV JT]**  
-Registration No: [25BCE10589]  
+Registration No: [25BCE10589] 
 
+**MY REPOSITORY**
+ML-EVERLASTING-CROP-SUGGESTER/
+│
+├── 📁 ML EVERLASTING CROP SUGGESTER/
+│     └── REPORT.pdf
+├── 📁 screenshots/
+│     ├── Screenshot 2026-03-30 152439.png
+│     ├── Screenshot 2026-03-30 152501.png
+│     └── ... all other screenshots
+├── MY PROJECT'S CODE
+└── README.md
 
